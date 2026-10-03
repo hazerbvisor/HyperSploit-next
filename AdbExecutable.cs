@@ -17,24 +17,7 @@ public static class AdbExecutable {
             var path = Path.GetFullPath(Path.Combine(directory, executable));
             if (IsExecutable(path)) return path;
         }
-        if (!OperatingSystem.IsWindows() ||
-            RuntimeInformation.ProcessArchitecture is not (Architecture.X64 or Architecture.X86)) return null;
-
-        var assembly = typeof(AdbExecutable).Assembly;
-        var resources = assembly.GetManifestResourceNames()
-            .Where(name => name.StartsWith("Assets/adb-windows/", StringComparison.Ordinal)).ToArray();
-        if (resources.Length == 0) return null;
-        var root = Path.Combine(Path.GetTempPath(), "hypersploit-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(root);
-        foreach (var resource in resources) {
-            var path = Path.Combine(root, resource["Assets/adb-windows/".Length..]);
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            using var source = assembly.GetManifestResourceStream(resource)!;
-            using var destination = File.Create(path);
-            source.CopyTo(destination);
-        }
-        // Keep DLLs beside adb while its server is running.
-        return Path.Combine(root, executable);
+        return null;
     }
 
     private static bool IsExecutable(string path) {

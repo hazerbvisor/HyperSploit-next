@@ -1,71 +1,47 @@
-# HyperSploit
-> [!WARNING]
-> This exploit has been patched on newer HyperOS 2 and completely on HyperOS 3 onwards. The project will no longer be maintained, and new issues will be ignored. I am not aware of any other exploits that would help, so there is no fix.
+# HyperSploit Next
 
-This is a simple zero depedencies utility to bypass HyperOS restrictions on bootloader unlocking.
+Phase 2 provides system ADB Wireless Debugging and read-only Android/Xiaomi
+device information. The default CLI does not expose the historical bypass code.
+No exploit restoration, binding manipulation, unlocking, flashing, APK manager,
+interactive shell, file transfer, or logcat UI is included.
 
-## Why another tool?
-1) This tool is much more user-friendly, is a single file and has zero dependencies
-2) HyperSploit ships with an older version of Settings to rollback in case you have a patched version
-3) This repo is licenced under an open-source licence instead of all rights reserved.
+## Build and run
 
-## Disclaimer
-Unlocking the bootloader is your responsibility. \
-By using this tool you acknowledge that:
-1) Software might stop working properly
-2) You can accidentally brick your device
-3) Data that wasn't backed up will be lost
-4) Warranty *may* be voided
+Install a .NET 9 SDK and your platform's Android platform tools (ADB).
 
-## Requirements
-> [!NOTE]
->
-> Each account can only unlock 1 phone per year.
-1) Xiaomi must not have forced your account or device to go through qualification
-2) A valid SIM-card must be inserted with access to the internet
-3) You're running an official version of HyperOS
+```sh
+dotnet restore
+dotnet build
+dotnet test
+dotnet run --project HyperSploit.csproj
+```
 
-## Bypass
-1) Open developer settings and open Mi Unlock Status
-2) Request unlocking, it will for whatever reason log everything necessary to forge the binding request ourselves
-   1. Xiaomi recently patched it out - they switched to RSA with the private key unknown.
-   2. You can still rollback to an earlier Settings app though - and it works perfectly!
-   3. The tool will prompt you to try and rollback if it detects a patched version.
-3) We disable mobile internet and send a forged request
-   1. ROM version is modified to be MIUI 14 instead of HyperOS.
-   2. It might fail due to even more random and arbitrary restrictions.
-4) Use the official [unlocking tool](https://en.miui.com/unlock/index.html) and check how much you have to wait
-   1. Do not eject the SIM card as the phone will constantly contact Xiaomi's servers.
-   2. Do not bind the account to another device or re-bind the same one.
+ADB resolves from `HYPERSPLOIT_ADB_PATH`, then `PATH`. The override must be an
+executable file path, not a command. No bundled ADB executable is used or embedded.
+Use `--diagnostics` for host details without starting ADB or contacting a device.
 
-## Error trying to downgrade the settings app
-If you get `Failure [INSTALL_FAILED_USER_RESTRICTED: Install canceled by user]` at this stage, make sure to do the following in developer options:
-1) Enable `Install via USB`
-2) Enable `USB debugging (Security Settings)`
-3) Near the end of the page, tap `Reset to default values` 5 times
-4) After more options appear, disable `Turn on system optimization` (if it still fails, you may need to reboot)
+The plain numbered menu fits narrow terminals:
 
-## How to use
-Note: If you're on MacOS or on Linux, install ADB and add it to `PATH`.
-1) Download latest binary from [Releases](https://github.com/TheAirBlow/HyperSploit/releases) for your OS
-2) Connect your Xiaomi device and run the executable
+1. Pair wireless device
+2. Connect/reconnect device
+3. Disconnect
+4. List devices
+5. Select device
+6. Device information
+7. Xiaomi/HyperOS information
+8. Doctor
+0. Exit
 
-## FAQ
-1) **Q:** Why does the unlock tool still remind me to wait for N hours? \
-   **A:** This tool only bypasses HyperOS restrictions, you still have to comply with MIUI's.
-2) **Q:** I see `Couldn't verify, wait a minute or two and try again` on my device. Why? \
-   **A:** This is normal behaviour, don't worry. We intentionally cut it off to forge a binding request ourselves.
+See [Wireless ADB and Alpine instructions](docs/wireless-adb.md) and the
+[Phase 1 platform audit](docs/alpine-arm64.md).
 
-## Licence
-This project is licenced under [Mozilla Public License Version 2.0](https://github.com/TheAirBlow/HyperSploit/blob/main/LICENCE)
+## Scope and evidence
 
-## Credits
-- [MlgmXyysd](https://github.com/MlgmXyysd) for making [Xiaomi-HyperOS-BootLoader-Bypass](https://github.com/MlgmXyysd/Xiaomi-HyperOS-BootLoader-Bypass) on which this tool is largely based on
+Only explicitly available properties are reported. Missing values, uncertain
+transport, contradictory bootloader flags, and insufficient OS evidence show
+Unknown. Future HyperOS generations are labeled Unknown/future. Android version
+and build fingerprint alone do not establish a HyperOS version or marketing
+region. Information is device-reported, not an independent security attestation.
 
-## Alpine Linux ARM64 (Phase 1)
-
-ADB is resolved from `HYPERSPLOIT_ADB_PATH` (an executable file path), then `PATH`.
-Linux ARM64 requires a system ADB; bundled Windows binaries are never used there.
-Run with `--diagnostics` to inspect the environment without contacting a device.
-See [the platform audit and exact Alpine commands](docs/alpine-arm64.md).
-Standard iSH uses an i386 guest and cannot run the ARM64 .NET runtime.
+Historical source and Windows ADB assets remain in the repository for history;
+the Phase 2 menu cannot invoke the legacy workflow and builds exclude ADB assets.

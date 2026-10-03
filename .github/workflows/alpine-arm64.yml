@@ -2,7 +2,7 @@ name: Alpine ARM64
 on:
   pull_request:
   push:
-    branches: [main, feature/alpine-arm64-phase1]
+    branches: [main, phase-2/wireless-adb]
 jobs:
   alpine-arm64:
     runs-on: ubuntu-24.04-arm

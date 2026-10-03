@@ -10,7 +10,7 @@ public class JsonResponse {
     public int Code { get; set; }
     
     [JsonPropertyName("descEN")]
-    public string Description { get; set; }
+    public string Description { get; set; } = "";
 }
 
 /// <summary>
