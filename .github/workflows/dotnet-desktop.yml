@@ -1,61 +1,38 @@
-name: .NET Core Desktop
-
+name: Release validation
 on:
+  pull_request:
   push:
-    branches: [ "main" ]
-
+    branches: [main, phase-5/release-polish]
 jobs:
-  build-windows:
-    name: Windows Build
-    runs-on: windows-latest
+  release:
+    strategy:
+      matrix:
+        include:
+          - { os: ubuntu-latest, rid: linux-x64 }
+          - { os: ubuntu-24.04-arm, rid: linux-arm64 }
+          - { os: macos-latest, rid: osx-arm64 }
+          - { os: macos-15-intel, rid: osx-x64 }
+          - { os: windows-latest, rid: win-x64 }
+    runs-on: ${{ matrix.os }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - name: Install .NET 9.0
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-    - name: Build HyperSploit
-      run: dotnet publish HyperSploit.sln -c Release -r win-x64 -p:PublishAot=true
-    - uses: actions/upload-artifact@v4
-      with:
-        name: HyperSploit-Windows.exe
-        path: bin/Release/net9.0/win-x64/publish/HyperSploit.exe
-  build-linux:
-    name: Linux Build
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - name: Install .NET 9.0
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-    - name: Build HyperSploit
-      run: dotnet publish HyperSploit.sln -c Release -r linux-x64 -p:PublishAot=true
-    - uses: actions/upload-artifact@v4
-      with:
-        name: HyperSploit-Linux
-        path: bin/Release/net9.0/linux-x64/publish/HyperSploit
-  build-macos:
-    name: MacOS Build
-    runs-on: macos-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - name: Install .NET 9.0
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-    - name: Build HyperSploit
-      run: dotnet publish HyperSploit.sln -c Release -r osx-x64 -p:PublishAot=true
-    - uses: actions/upload-artifact@v4
-      with:
-        name: HyperSploit-MacOS
-        path: bin/Release/net9.0/osx-x64/publish/HyperSploit
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - run: dotnet restore
+      - run: dotnet build -c Release --no-restore
+      - run: dotnet test -c Release --no-build --no-restore
+      - run: dotnet publish HyperSploit.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishAot=false -o artifacts/release/${{ matrix.rid }}
+      - name: Smoke test
+        shell: bash
+        run: |
+          app=./artifacts/release/${{ matrix.rid }}/HyperSploit.Next
+          if [ '${{ matrix.rid }}' = win-x64 ]; then app="$app.exe"; fi
+          "$app" --help
+          "$app" --version
+          "$app" --diagnostics
+          cp LICENCE NOTICE artifacts/release/${{ matrix.rid }}/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HyperSploit-Next-${{ matrix.rid }}
+          path: artifacts/release/${{ matrix.rid }}/

@@ -1,0 +1,7 @@
+HyperSploit Next is derived from HyperSploit by TheAirBlow.
+Original project: https://github.com/TheAirBlow/HyperSploit
+Original author and contributors retain their copyrights.
+Next maintenance and platform work: hazerbvisor and contributors.
+Source is licensed under Mozilla Public License 2.0; see LICENCE.
+Historical code and assets are retained in LegacyReference for source analysis only.
+They are excluded from normal compilation, embedded resources, and release packages.

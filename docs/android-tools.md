@@ -90,7 +90,7 @@ uname -m # must report aarch64
 apk add --no-cache git dotnet9-sdk android-tools icu-libs
 git clone https://github.com/hazerbvisor/HyperSploit-next.git
 cd HyperSploit-next
-git checkout phase-4/xiaomi-fastboot
+git checkout phase-5/release-polish # use main after Phase 5 merges
 dotnet restore
 dotnet build
 dotnet test
@@ -98,7 +98,7 @@ adb version
 HYPERSPLOIT_ADB_PATH=/usr/bin/adb dotnet run --project HyperSploit.csproj -- --diagnostics
 HYPERSPLOIT_ADB_PATH=/usr/bin/adb dotnet run --project HyperSploit.csproj
 dotnet publish HyperSploit.csproj -c Release -r linux-musl-arm64 --self-contained true -p:PublishAot=false -o out/alpine-arm64
-./out/alpine-arm64/HyperSploit --diagnostics
+./out/alpine-arm64/HyperSploit.Next --diagnostics
 ```
 
 The native Alpine ARM64 CI job restores, builds, runs phone-free tests, publishes

@@ -24,17 +24,19 @@ ADB is launched directly with separate arguments, captured stdout/stderr, and a
 20-second deadline. Ctrl+C cancels an in-flight setup command and returns to the main menu. No host
 shell is used. Phase 3 management commands are documented in [Android tools](android-tools.md).
 
-Selection is saved under the user's local application-data directory
-(`HyperSploit/selected-device.json`). Corrupt or missing selection files are
-ignored; save failures leave selection available for the current session.
-Only the serial is stored, never pairing codes. Reconnect by entering the current
-debugging endpoint in menu 2, or leave it empty to retry a selected IP:port.
-Android can change the port/IP; old selections then require reconnect/reselection.
-For an mDNS serial, enter the numeric IP:port explicitly for connect/disconnect.
+Selection and successful connection addresses are saved in
+`~/.config/hypersploit-next/config.json` (or under `XDG_CONFIG_HOME`). Missing or
+corrupt config falls back to defaults; save failures retain the session selection.
+Only non-secret preferences are stored, never pairing codes. Reconnect by entering
+the current debugging endpoint in menu 2, or leave it empty to retry the last
+successful wireless address. Android can change IP/port; reconnect/reselect then.
+An mDNS serial requires a numeric IP:port for connect/disconnect. Opt-in
+`autoReconnect` attempts the last wireless address once at management-menu startup.
+See the [current configuration and quick-start](../README.md).
 
 Device state is refreshed before reading information; connection loss, ADB errors,
 unauthorized/offline states and timeouts return to the menu. This is on-demand
-discovery, not continuous monitoring or background auto-reconnection.
+discovery, not continuous monitoring or background retries.
 
 ## Read-only detection
 
@@ -63,7 +65,7 @@ uname -m # must report aarch64
 apk add --no-cache git dotnet9-sdk android-tools icu-libs
 git clone https://github.com/hazerbvisor/HyperSploit-next.git
 cd HyperSploit-next
-git checkout phase-4/xiaomi-fastboot
+git checkout phase-5/release-polish # use main after Phase 5 merges
 dotnet restore
 dotnet build
 dotnet test
@@ -72,12 +74,12 @@ HYPERSPLOIT_ADB_PATH=/usr/bin/adb dotnet run --project HyperSploit.csproj -- --d
 HYPERSPLOIT_ADB_PATH=/usr/bin/adb dotnet run --project HyperSploit.csproj
 # In the CLI: pair, connect, list, select, inspect, disconnect; test Wi-Fi loss.
 dotnet publish HyperSploit.csproj -c Release -r linux-musl-arm64 --self-contained true -p:PublishAot=false -o out/alpine-arm64
-./out/alpine-arm64/HyperSploit
+./out/alpine-arm64/HyperSploit.Next
 ```
 
 No USB passthrough, /dev/bus/usb, systemd, GUI or privileged kernel feature is
 required by this workflow. Host network reachability and Android authorization
-are still necessary. Menu 8 checks host diagnostics, ADB version and device list.
+are still necessary. Wireless menu 8 and main menu 12 run the same doctor command, reporting both tool versions and device status.
 
 ## Validation limits
 

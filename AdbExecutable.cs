@@ -1,16 +1,16 @@
-using System.Runtime.InteropServices;
-
 namespace HyperSploit;
 
 public static class AdbExecutable {
     public static string? Resolve() => Resolve("adb", "HYPERSPLOIT_ADB_PATH");
 
     internal static string? Resolve(string tool, string variable) {
+        var config = new ConfigStore().Load();
         var configured = Environment.GetEnvironmentVariable(variable);
-        if (!string.IsNullOrEmpty(configured)) {
+        if (string.IsNullOrWhiteSpace(configured)) configured = tool == "adb" ? config.AdbPath : config.FastbootPath;
+        if (!string.IsNullOrWhiteSpace(configured)) {
             var path = Path.GetFullPath(configured);
             if (!IsExecutable(path))
-                throw new IOException($"{variable} is not an executable file: {path}");
+                throw new IOException($"Configured {tool} path is not an executable file: {path}");
             return path;
         }
         var executable = OperatingSystem.IsWindows() ? tool + ".exe" : tool;

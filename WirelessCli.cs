@@ -34,10 +34,12 @@ public static class WirelessCli {
                             Console.WriteLine("Now connect using the debugging port.");
                             break;
                         case "2":
-                            var endpoint = Read("Debugging IP:PORT (empty = selected)");
+                            var endpoint = Read("Debugging IP:PORT (empty = last address)");
                             if (endpoint == null) return selected;
-                            if (endpoint.Length == 0) endpoint = selected ?? "";
+                            if (endpoint.Length == 0) endpoint = new ConfigStore().Load().LastWirelessAddress ?? selected ?? "";
                             Console.WriteLine(await wireless.ConnectAsync(endpoint, ct));
+                            try { new ConfigStore().Update(config => config.LastWirelessAddress = endpoint); }
+                            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Console.WriteLine($"Connected; cannot remember address: {e.Message}"); }
                             break;
                         case "3":
                             var disconnect = Read("IP:PORT (empty = selected)");
@@ -85,15 +87,7 @@ public static class WirelessCli {
                                     Console.WriteLine($"{key}:\n  {info.Get(key)}");
                             break;
                         case "8":
-                            EnvironmentDiagnostics.Print();
-                            var version = await runner.RunAsync(["version"], cancellationToken: ct);
-                            version.EnsureSuccess();
-                            Console.WriteLine(version.Output);
-                            Console.WriteLine($"Visible devices: {(await discovery.ListAsync(ct)).Count}");
-                            Console.WriteLine("Use same Wi-Fi; enable Wireless debugging.");
-                            Console.WriteLine("Pairing and debugging ports differ.");
-                            Console.WriteLine("Offline: reconnect. Unauthorized: authorize.");
-                            Console.WriteLine("Standard iSH is i386; .NET needs supported ARM64/x64.");
+                            await Doctor.RunAsync(runner, ct);
                             break;
                         default: Console.WriteLine("Choose 0-8."); break;
                     }
