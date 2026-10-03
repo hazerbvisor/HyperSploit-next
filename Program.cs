@@ -36,7 +36,7 @@ public static class Program {
             EnvironmentDiagnostics.Print();
             return;
         }
-        await WirelessCli.RunAsync();
+        await ManagementCli.RunAsync();
     }
 
     /// <summary>

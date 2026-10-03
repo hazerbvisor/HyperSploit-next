@@ -7,41 +7,41 @@ public static class WirelessCli {
         Console.Write(prompt + ": ");
         return Console.ReadLine()?.Trim();
     }
-    public static async Task RunAsync() {
+    public static async Task<string?> RunAsync(string? selection = null) {
         var runner = new AdbCommandRunner();
         var wireless = new WirelessAdb(runner);
         var discovery = new DeviceDiscovery(runner);
         var store = new DeviceSelectionStore();
-        var selected = store.Load();
+        var selected = selection ?? store.Load();
         using var cancellation = new CancellationTokenSource();
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; cancellation.Cancel(); };
         Console.CancelKeyPress += cancel;
         try {
             while (!cancellation.IsCancellationRequested) {
-                Console.WriteLine("\nHyperSploit Next - Phase 2");
-                Console.WriteLine("1. Pair wireless device\n2. Connect/reconnect device\n3. Disconnect\n4. List devices\n5. Select device\n6. Device information\n7. Xiaomi/HyperOS information\n8. Doctor\n0. Exit");
+                Console.WriteLine("\nWireless setup");
+                Console.WriteLine("1. Pair wireless device\n2. Connect/reconnect device\n3. Disconnect\n4. List devices\n5. Select device\n6. Device information\n7. Xiaomi/HyperOS information\n8. Doctor\n0. Back");
                 var choice = Read("Choice");
-                if (choice is null or "0") return;
+                if (choice is null or "0") return selected;
                 try {
                     var ct = cancellation.Token;
                     switch (choice) {
                         case "1":
                             var pairing = Read("Pairing IP:PORT");
-                            if (pairing == null) return;
+                            if (pairing == null) return selected;
                             var code = Read("Six-digit pairing code");
-                            if (code == null) return;
+                            if (code == null) return selected;
                             Console.WriteLine(await wireless.PairAsync(pairing, code, ct));
                             Console.WriteLine("Now connect using the debugging port.");
                             break;
                         case "2":
                             var endpoint = Read("Debugging IP:PORT (empty = selected)");
-                            if (endpoint == null) return;
+                            if (endpoint == null) return selected;
                             if (endpoint.Length == 0) endpoint = selected ?? "";
                             Console.WriteLine(await wireless.ConnectAsync(endpoint, ct));
                             break;
                         case "3":
                             var disconnect = Read("IP:PORT (empty = selected)");
-                            if (disconnect == null) return;
+                            if (disconnect == null) return selected;
                             Console.WriteLine(await wireless.DisconnectAsync(
                                 disconnect.Length == 0 ? selected ?? "" : disconnect, ct));
                             break;
@@ -56,7 +56,7 @@ public static class WirelessCli {
                             }
                             if (choice == "5" && devices.Count > 0) {
                                 var number = Read("Device number (0 = cancel)");
-                                if (number == null) return;
+                                if (number == null) return selected;
                                 if (int.TryParse(number, out var index) && index > 0 && index <= devices.Count) {
                                     selected = devices[index - 1].Serial;
                                     try { store.Save(selected); }
@@ -97,11 +97,12 @@ public static class WirelessCli {
                             break;
                         default: Console.WriteLine("Choose 0-8."); break;
                     }
-                } catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { return; }
+                } catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { return selected; }
                 catch (Exception e) when (e is IOException or TimeoutException or ArgumentException or UnauthorizedAccessException) {
                     Console.WriteLine($"Error: {e.Message}");
                 }
             }
         } finally { Console.CancelKeyPress -= cancel; }
+        return selected;
     }
 }
