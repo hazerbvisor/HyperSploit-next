@@ -5,7 +5,7 @@ namespace HyperSploit;
 
 public static class DiagnosticsCli {
     public static void Write(string text) {
-        var width = 48;
+        var width = new ConfigStore().Load().Cli.TerminalWidth;
         try { if (!Console.IsOutputRedirected) width = Math.Clamp(Console.WindowWidth - 1, 20, 72); } catch (IOException) { }
         foreach (var original in text.Split('\n')) {
             var line = original;

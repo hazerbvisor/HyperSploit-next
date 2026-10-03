@@ -1,7 +1,9 @@
 # Historical Phase 1 audit
 
 Phase 2 supersedes the runtime workflow and removes bundled ADB resolution.
-See [current instructions](wireless-adb.md). The audit below describes Phase 1.
+Phase 5 additionally isolates all legacy code and assets in LegacyReference,
+removes the old SDK dependencies, and disables AOT in every release workflow.
+See [current instructions](../README.md). The audit below describes Phase 1.
 
 # Phase 1: Alpine Linux AArch64
 

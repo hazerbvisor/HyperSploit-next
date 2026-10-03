@@ -2,7 +2,7 @@ name: Alpine ARM64
 on:
   pull_request:
   push:
-    branches: [main, phase-2/wireless-adb, phase-3/android-tools, phase-4/xiaomi-fastboot]
+    branches: [main, phase-2/wireless-adb, phase-3/android-tools, phase-4/xiaomi-fastboot, phase-5/release-polish]
 jobs:
   alpine-arm64:
     runs-on: ubuntu-24.04-arm
@@ -24,5 +24,7 @@ jobs:
               dotnet run --project HyperSploit.csproj -c Release --no-build -- --diagnostics
               HYPERSPLOIT_ADB_PATH=/usr/bin/adb HYPERSPLOIT_FASTBOOT_PATH=/usr/bin/fastboot dotnet run --project HyperSploit.csproj -c Release --no-build -- --diagnostics
               dotnet publish HyperSploit.csproj -c Release -r linux-musl-arm64 --self-contained true -p:PublishAot=false -o out/alpine-arm64
-              ./out/alpine-arm64/HyperSploit --diagnostics
+              ./out/alpine-arm64/HyperSploit.Next --diagnostics
+              ./out/alpine-arm64/HyperSploit.Next --help
+              ./out/alpine-arm64/HyperSploit.Next --version
             '

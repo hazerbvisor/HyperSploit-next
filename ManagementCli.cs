@@ -20,6 +20,7 @@ public static class ManagementCli {
         var store = new DeviceSelectionStore();
         var discovery = new DeviceDiscovery(runner);
         var selected = store.Load();
+        await Doctor.AutoReconnectAsync(runner);
         while (true) {
             try {
                 Console.WriteLine("\nHyperSploit Next\n================");
@@ -159,11 +160,7 @@ public static class ManagementCli {
                             DiagnosticsCli.Write($"Category: {error.Category}\n{error.Explanation}\nSafe troubleshooting:\n{error.Troubleshooting}");
                             break;
                         case "12":
-                            EnvironmentDiagnostics.Print();
-                            var version = await runner.RunAsync(["version"], cancellationToken: ct);
-                            version.EnsureSuccess(); Output(version);
-                            Console.WriteLine($"Visible devices: {(await discovery.ListAsync(ct)).Count}");
-                            Console.WriteLine("Use same Wi-Fi and Wireless debugging.\nOffline: reconnect. Unauthorized: authorize.\nStandard iSH is i386; check uname -m.");
+                            await Doctor.RunAsync(runner, ct);
                             break;
                         default: Console.WriteLine("Choose 0-12."); break;
                     }
