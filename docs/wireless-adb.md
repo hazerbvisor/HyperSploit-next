@@ -5,7 +5,7 @@
 Android 11+ Wireless Debugging must be supported and enabled by the device.
 Keep the host and device on the same reachable Wi-Fi network.
 
-Open main menu **9** for the wireless setup submenu. The numbered choices below
+Open main menu **11** for the wireless setup submenu. The numbered choices below
 refer to that submenu; choose 0 to return to the management menu.
 
 1. In Android developer options, open Wireless debugging, then Pair device with
@@ -63,7 +63,7 @@ uname -m # must report aarch64
 apk add --no-cache git dotnet9-sdk android-tools icu-libs
 git clone https://github.com/hazerbvisor/HyperSploit-next.git
 cd HyperSploit-next
-git checkout phase-3/android-tools
+git checkout phase-4/xiaomi-fastboot
 dotnet restore
 dotnet build
 dotnet test
