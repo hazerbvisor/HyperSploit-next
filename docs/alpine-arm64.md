@@ -1,3 +1,8 @@
+# Historical Phase 1 audit
+
+Phase 2 supersedes the runtime workflow and removes bundled ADB resolution.
+See [current instructions](wireless-adb.md). The audit below describes Phase 1.
+
 # Phase 1: Alpine Linux AArch64
 
 ## Platform audit

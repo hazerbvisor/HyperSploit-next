@@ -18,9 +18,7 @@
         <EmbeddedResource
                 Include="Assets/Settings.apk.gz"
                 LogicalName="Settings.apk.gz"/>
-        <EmbeddedResource Include="Assets/adb-windows/**/*"
-                Condition="('$(RuntimeIdentifier)' == 'win-x64' or '$(RuntimeIdentifier)' == 'win-x86') or ('$(RuntimeIdentifier)' == '' and $([MSBuild]::IsOSPlatform('Windows')) and '$(PROCESSOR_ARCHITECTURE)' != 'ARM64')"
-                LogicalName="$([System.String]::Copy('%(RelativeDir)').Replace('\','/'))%(Filename)%(Extension)"/>
+
     </ItemGroup>
     <ItemGroup>
         <Compile Remove="tests/**/*.cs" />

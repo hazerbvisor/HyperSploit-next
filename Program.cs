@@ -25,73 +25,18 @@ public static class Program {
     /// <summary>
     /// Should global API be used
     /// </summary>
-    private static bool IsGlobal;
+    private static bool IsGlobal = false;
     
     /// <summary>
     /// Program entrypoint
     /// </summary>
     /// <param name="args">Arguments</param>
     public static async Task Main(string[] args) {
-        AnsiConsole.Write(new FigletText("HyperSploit").LeftJustified().Color(Color.Cyan1));
-        AnsiConsole.MarkupLine("[green]Welcome to HyperSploit v1.1 by TheAirBlow![/]");
         if (args.Contains("--diagnostics")) {
             EnvironmentDiagnostics.Print();
             return;
         }
-        string? adbPath;
-        try {
-            adbPath = AdbExecutable.Resolve();
-        } catch (Exception e) when (e is IOException or UnauthorizedAccessException) {
-            Console.Error.WriteLine($"ADB configuration error: {e.Message}");
-            Environment.ExitCode = 1;
-            return;
-        }
-        if (!AdbServer.Instance.GetStatus().IsRunning) {
-            if (adbPath == null) {
-                Console.Error.WriteLine("ADB not found. Install adb and add it to PATH, or set HYPERSPLOIT_ADB_PATH to its executable path.");
-                EnvironmentDiagnostics.Print();
-                Environment.ExitCode = 1;
-                return;
-            }
-            AnsiConsole.MarkupLine("[yellow]No ADB server is running, trying to start...[/]");
-            try {
-                var result = await new AdbServer().StartServerAsync(adbPath);
-                if (result != StartServerResult.Started && !AdbServer.Instance.GetStatus().IsRunning)
-                    throw new IOException($"ADB server startup returned {result}.");
-            } catch (Exception e) {
-                Console.Error.WriteLine($"Failed to start ADB at '{adbPath}': {e.Message}");
-                EnvironmentDiagnostics.Print();
-                Environment.ExitCode = 1;
-                return;
-            }
-        }
-
-        var client = new AdbClient();
-        while (true) {
-            var devices = await client.GetDevicesAsync();
-            var dict = devices.ToDictionary(x => $"{x.Model} codename {x.Name}", x => x);
-            var choice = AnsiConsole.Prompt(new SelectionPrompt<string>()
-                .Title("[cyan]Choose android device to use:[/]")
-                .AddChoices(dict.Keys.Append("[yellow]Refresh list[/]")));
-            if (!dict.TryGetValue(choice, out var device)) continue;
-            AnsiConsole.MarkupLine($"[green]You chose [cyan]{device.Model} codename {device.Name}[/]![/]");
-            if (device.State != DeviceState.Online) {
-                AnsiConsole.MarkupLine($"[yellow]Chosen device is in an invalid state: {device.State}![/]");
-                AnsiConsole.MarkupLine("[yellow]Make sure to authorize your computer if asked to.[/]");
-                continue;
-            }
-
-            IsGlobal = !AnsiConsole.Confirm("[yellow]Is this device from Mainland China?[/]", false);
-            try {
-                await Bypass(client, device);
-            } catch (Exception e) {
-                AnsiConsole.MarkupLine("[red]Unhandled exception caught, can't continue![/]");
-                Console.WriteLine(e);
-            }
-            if (!AnsiConsole.Confirm("[yellow]Would you like to run HyperSploit on another device?[/]", false)) break;
-        }
-        
-
+        await WirelessCli.RunAsync();
     }
 
     /// <summary>
