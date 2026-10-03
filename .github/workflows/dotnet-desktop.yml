@@ -18,7 +18,7 @@ jobs:
       with:
         dotnet-version: '9.0.x'
     - name: Build HyperSploit
-      run: dotnet publish HyperSploit.sln -c Release -r win-x64
+      run: dotnet publish HyperSploit.sln -c Release -r win-x64 -p:PublishAot=true
     - uses: actions/upload-artifact@v4
       with:
         name: HyperSploit-Windows.exe
@@ -36,7 +36,7 @@ jobs:
       with:
         dotnet-version: '9.0.x'
     - name: Build HyperSploit
-      run: dotnet publish HyperSploit.sln -c Release -r linux-x64
+      run: dotnet publish HyperSploit.sln -c Release -r linux-x64 -p:PublishAot=true
     - uses: actions/upload-artifact@v4
       with:
         name: HyperSploit-Linux
@@ -54,7 +54,7 @@ jobs:
       with:
         dotnet-version: '9.0.x'
     - name: Build HyperSploit
-      run: dotnet publish HyperSploit.sln -c Release -r osx-x64
+      run: dotnet publish HyperSploit.sln -c Release -r osx-x64 -p:PublishAot=true
     - uses: actions/upload-artifact@v4
       with:
         name: HyperSploit-MacOS

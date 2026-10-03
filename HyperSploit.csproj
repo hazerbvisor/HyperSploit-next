@@ -1,11 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <PublishAot>true</PublishAot>
+        <PublishAot Condition="'$(PublishAot)' == ''">false</PublishAot>
         <Version>1.1.0</Version>
     </PropertyGroup>
 
@@ -18,17 +18,11 @@
         <EmbeddedResource
                 Include="Assets/Settings.apk.gz"
                 LogicalName="Settings.apk.gz"/>
-        <EmbeddedResource
-                Include="Assets/adb-linux/**/*"
-                Condition="$([MSBuild]::IsOSPlatform('Linux'))" 
+        <EmbeddedResource Include="Assets/adb-windows/**/*"
+                Condition="('$(RuntimeIdentifier)' == 'win-x64' or '$(RuntimeIdentifier)' == 'win-x86') or ('$(RuntimeIdentifier)' == '' and $([MSBuild]::IsOSPlatform('Windows')) and '$(PROCESSOR_ARCHITECTURE)' != 'ARM64')"
                 LogicalName="$([System.String]::Copy('%(RelativeDir)').Replace('\','/'))%(Filename)%(Extension)"/>
-        <EmbeddedResource
-                Include="Assets/adb-windows/**/*"
-                Condition="$([MSBuild]::IsOSPlatform('Windows'))"
-                LogicalName="$([System.String]::Copy('%(RelativeDir)').Replace('\','/'))%(Filename)%(Extension)"/>
-        <EmbeddedResource
-                Include="Assets/adb-macos/**/*"
-                Condition="$([MSBuild]::IsOSPlatform('macOS'))"
-                LogicalName="$([System.String]::Copy('%(RelativeDir)').Replace('\','/'))%(Filename)%(Extension)"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="tests/**/*.cs" />
     </ItemGroup>
 </Project>
