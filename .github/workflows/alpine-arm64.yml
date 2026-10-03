@@ -6,24 +6,22 @@ on:
 jobs:
   alpine-arm64:
     runs-on: ubuntu-24.04-arm
-    container: mcr.microsoft.com/dotnet/sdk:9.0-alpine
     steps:
-      - name: Install host tools
-        run: apk add --no-cache git android-tools icu-libs
       - uses: actions/checkout@v4
-      - name: Verify native architecture and ADB
+      - name: Restore, build, test and smoke test on native Alpine ARM64
         run: |
-          test "$(uname -m)" = aarch64
-          dotnet --info
-          adb version
-      - run: dotnet restore HyperSploit.sln
-      - run: dotnet build HyperSploit.sln -c Release --no-restore
-      - run: dotnet test HyperSploit.sln -c Release --no-build --no-restore
-      - name: Check diagnostics and override
-        run: |
-          dotnet run --project HyperSploit.csproj -c Release --no-build -- --diagnostics
-          HYPERSPLOIT_ADB_PATH=/usr/bin/adb dotnet run --project HyperSploit.csproj -c Release --no-build -- --diagnostics
-      - name: Publish and smoke test musl ARM64
-        run: |
-          dotnet publish HyperSploit.csproj -c Release -r linux-musl-arm64 --self-contained true -p:PublishAot=false -o out/alpine-arm64
-          ./out/alpine-arm64/HyperSploit --diagnostics
+          docker run --rm --platform linux/arm64 \
+            -v "$GITHUB_WORKSPACE:/src" -w /src \
+            mcr.microsoft.com/dotnet/sdk:9.0-alpine sh -ec '
+              test "$(uname -m)" = aarch64
+              apk add --no-cache android-tools icu-libs
+              dotnet --info
+              adb version
+              dotnet restore HyperSploit.sln
+              dotnet build HyperSploit.sln -c Release --no-restore
+              dotnet test HyperSploit.sln -c Release --no-build --no-restore
+              dotnet run --project HyperSploit.csproj -c Release --no-build -- --diagnostics
+              HYPERSPLOIT_ADB_PATH=/usr/bin/adb dotnet run --project HyperSploit.csproj -c Release --no-build -- --diagnostics
+              dotnet publish HyperSploit.csproj -c Release -r linux-musl-arm64 --self-contained true -p:PublishAot=false -o out/alpine-arm64
+              ./out/alpine-arm64/HyperSploit --diagnostics
+            '
