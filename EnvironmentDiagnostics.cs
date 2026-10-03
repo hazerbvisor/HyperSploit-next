@@ -15,5 +15,11 @@ public static class EnvironmentDiagnostics {
             Console.WriteLine($"ADB: {e.Message}");
             Environment.ExitCode = 1;
         }
+        try {
+            Console.WriteLine($"Fastboot: {AdbExecutable.Resolve("fastboot", "HYPERSPLOIT_FASTBOOT_PATH") ?? "not found"}");
+        } catch (Exception e) when (e is IOException or UnauthorizedAccessException) {
+            Console.WriteLine($"Fastboot: {e.Message}");
+            Environment.ExitCode = 1;
+        }
     }
 }

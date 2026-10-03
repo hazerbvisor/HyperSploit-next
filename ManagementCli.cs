@@ -1,4 +1,5 @@
 using HyperSploit.Adb;
+using HyperSploit.Xiaomi;
 namespace HyperSploit;
 
 public static class ManagementCli {
@@ -29,11 +30,11 @@ public static class ManagementCli {
             } catch (Exception e) when (e is IOException or TimeoutException or ArgumentException) {
                 Console.WriteLine($"ADB unavailable: {e.Message}");
             }
-            Console.WriteLine("1. Device information\n2. ADB shell\n3. Applications\n4. File transfer\n5. Logcat\n6. Reboot\n7. Xiaomi information\n8. Doctor\n9. Wireless setup / select device\n0. Exit");
+            Console.WriteLine("1. Device information\n2. ADB shell\n3. Applications\n4. File transfer\n5. Logcat\n6. Reboot\n7. Xiaomi diagnostics\n8. Compatibility report\n9. Fastboot information\n10. Xiaomi error lookup\n11. Wireless setup / select device\n12. Doctor\n0. Exit");
             try {
                 var choice = Read("Choice").Trim();
                 if (choice == "0") return;
-                if (choice == "9") { selected = await WirelessCli.RunAsync(selected); continue; }
+                if (choice == "11") { selected = await WirelessCli.RunAsync(selected); continue; }
                 using var cancellation = new CancellationTokenSource();
                 ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; cancellation.Cancel(); };
                 Console.CancelKeyPress += cancel;
@@ -42,11 +43,10 @@ public static class ManagementCli {
                     var device = new SelectedDeviceCommands(runner, selected);
                     switch (choice) {
                         case "1":
-                        case "7":
                             await device.ArgumentsAsync(["shell", "getprop"], ct);
                             var info = await discovery.ReadAsync(selected!, ct);
                             Console.WriteLine($"Model: {info.Get("ro.product.model")}\nVendor: {info.Vendor}\nAndroid: {info.Get("ro.build.version.release")}\nOS: {info.Os}\nBootloader: {info.Bootloader}");
-                            foreach (var key in choice == "1" ? new[] { "ro.product.manufacturer", "ro.product.brand", "ro.product.device", "ro.product.name", "ro.build.version.sdk", "ro.build.version.security_patch", "ro.build.fingerprint", "ro.boot.flash.locked", "ro.boot.vbmeta.device_state", "ro.boot.verifiedbootstate" } : new[] { "ro.mi.os.version.name", "ro.mi.os.version.incremental", "ro.mi.os.version.code", "ro.miui.ui.version.name", "ro.miui.region", "ro.boot.verifiedbootstate" })
+                            foreach (var key in new[] { "ro.product.manufacturer", "ro.product.brand", "ro.product.device", "ro.product.name", "ro.build.version.sdk", "ro.build.version.security_patch", "ro.build.fingerprint", "ro.boot.flash.locked", "ro.boot.vbmeta.device_state", "ro.boot.verifiedbootstate" })
                                 Console.WriteLine($"{key}:\n  {info.Get(key)}");
                             break;
                         case "2":
@@ -145,14 +145,27 @@ public static class ManagementCli {
                                 Console.WriteLine("Reboot requested. Wireless connection will disconnect.");
                             }
                             break;
+                        case "7":
+                            await DiagnosticsCli.XiaomiAsync(discovery, selected, ct);
+                            break;
                         case "8":
+                            await DiagnosticsCli.CompatibilityAsync(discovery, selected, ct);
+                            break;
+                        case "9":
+                            await DiagnosticsCli.FastbootAsync(ct);
+                            break;
+                        case "10":
+                            var error = XiaomiErrorDatabase.Lookup(Read("Xiaomi code or full error message"));
+                            DiagnosticsCli.Write($"Category: {error.Category}\n{error.Explanation}\nSafe troubleshooting:\n{error.Troubleshooting}");
+                            break;
+                        case "12":
                             EnvironmentDiagnostics.Print();
                             var version = await runner.RunAsync(["version"], cancellationToken: ct);
                             version.EnsureSuccess(); Output(version);
                             Console.WriteLine($"Visible devices: {(await discovery.ListAsync(ct)).Count}");
                             Console.WriteLine("Use same Wi-Fi and Wireless debugging.\nOffline: reconnect. Unauthorized: authorize.\nStandard iSH is i386; check uname -m.");
                             break;
-                        default: Console.WriteLine("Choose 0-9."); break;
+                        default: Console.WriteLine("Choose 0-12."); break;
                     }
                 } catch (OperationCanceledException) { Console.WriteLine("Operation stopped."); }
                 finally { Console.CancelKeyPress -= cancel; }

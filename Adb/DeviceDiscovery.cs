@@ -30,7 +30,7 @@ public sealed class DeviceDiscovery(IAdbCommandRunner runner) {
     public async Task<DeviceInformation> ReadAsync(string serial, CancellationToken ct = default) {
         var device = (await ListAsync(ct)).FirstOrDefault(d => d.Serial == serial)
             ?? throw new IOException("Selected device disconnected. Connect or select a device again.");
-        if (device.State != AdbDeviceState.Online)
+        if (device.State != AdbDeviceState.Online && device.RawState != "recovery")
             throw new IOException($"Device is {device.RawState}. Authorize it or reconnect.");
         var result = await runner.RunAsync(["-s", serial, "shell", "getprop"], cancellationToken: ct);
         result.EnsureSuccess();

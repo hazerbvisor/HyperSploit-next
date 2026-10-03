@@ -20,7 +20,7 @@ public interface IAdbCommandRunner {
 }
 
 /// <summary>One process implementation for buffered, streaming and terminal operations.</summary>
-public sealed class AdbCommandRunner(TimeSpan? timeout = null) : IAdbCommandRunner {
+public sealed class AdbCommandRunner(TimeSpan? timeout = null, Func<string?>? executableResolver = null, string tool = "ADB") : IAdbCommandRunner {
     public Task<AdbResult> RunAsync(IReadOnlyList<string> arguments, string? input = null,
         CancellationToken cancellationToken = default) => ExecuteAsync(arguments, input, null, false,
             timeout ?? TimeSpan.FromSeconds(20), cancellationToken);
@@ -31,10 +31,10 @@ public sealed class AdbCommandRunner(TimeSpan? timeout = null) : IAdbCommandRunn
         CancellationToken cancellationToken = default) => ExecuteAsync(arguments, null, null, true,
             timeout ?? Timeout.InfiniteTimeSpan, cancellationToken);
 
-    private static async Task<AdbResult> ExecuteAsync(IReadOnlyList<string> arguments, string? input,
+    private async Task<AdbResult> ExecuteAsync(IReadOnlyList<string> arguments, string? input,
         Action<string, bool>? output, bool interactive, TimeSpan duration, CancellationToken ct) {
-        var path = AdbExecutable.Resolve() ??
-            throw new IOException("ADB not found. Install android-tools or set HYPERSPLOIT_ADB_PATH.");
+        var path = (executableResolver ?? AdbExecutable.Resolve)() ??
+            throw new IOException($"{tool} not found. Install android-tools or configure its executable path.");
         var start = new ProcessStartInfo(path) {
             UseShellExecute = false, RedirectStandardOutput = !interactive,
             RedirectStandardError = !interactive, RedirectStandardInput = !interactive,
@@ -77,9 +77,9 @@ public sealed class AdbCommandRunner(TimeSpan? timeout = null) : IAdbCommandRunn
             }
             return new(process.ExitCode, await stdout, await stderr);
         } catch (OperationCanceledException) when (!ct.IsCancellationRequested) {
-            throw new TimeoutException("ADB timed out. Check Wi-Fi and Wireless debugging.");
+            throw new TimeoutException($"{tool} timed out. Check the connection and device mode.");
         } catch (System.ComponentModel.Win32Exception e) {
-            throw new IOException($"Cannot run ADB: {e.Message}", e);
+            throw new IOException($"Cannot run {tool}: {e.Message}", e);
         }
     }
 

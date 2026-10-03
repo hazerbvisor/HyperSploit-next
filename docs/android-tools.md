@@ -1,11 +1,11 @@
 # Phase 3 Android tools
 
-Use a system ADB executable and Android Wireless debugging. Choose main menu 9
+Use a system ADB executable and Android Wireless debugging. Choose main menu 11
 for pairing, connection, device listing and selection. Return with 0. Duplicate
 models remain distinguishable by serial. Management commands preflight that exact
 serial and reject missing, offline, unauthorized or non-wireless devices. They
 never switch to another visible device. A race with a disconnect is reported
-using ADB's error output; reconnect/reselect through menu 9.
+using ADB's error output; reconnect/reselect through menu 11.
 
 ## Shell
 
@@ -73,7 +73,7 @@ that requires confirmation and targets only the selected serial.
 Menu 6 offers standard `adb reboot`, `adb reboot recovery`, and
 `adb reboot bootloader`. The selected serial and mode are shown before typing
 `yes`. Success means ADB accepted the request; Wi-Fi will normally disconnect.
-Recovery/bootloader availability depends on the device. There is no Fastboot,
+Recovery/bootloader availability depends on the device. Fastboot inspection is available in menu 9. There is no Fastboot write,
 flash, wipe, unlock or partition management UI. Reconnect through wireless setup
 after returning to Android and enabling Wireless debugging again.
 
@@ -90,7 +90,7 @@ uname -m # must report aarch64
 apk add --no-cache git dotnet9-sdk android-tools icu-libs
 git clone https://github.com/hazerbvisor/HyperSploit-next.git
 cd HyperSploit-next
-git checkout phase-3/android-tools
+git checkout phase-4/xiaomi-fastboot
 dotnet restore
 dotnet build
 dotnet test
@@ -103,7 +103,7 @@ dotnet publish HyperSploit.csproj -c Release -r linux-musl-arm64 --self-containe
 
 The native Alpine ARM64 CI job restores, builds, runs phone-free tests, publishes
 a self-contained musl ARM64 binary and runs diagnostics. For a physical-device
-check, use menu 9 to pair/connect/select, then:
+check, use menu 11 to pair/connect/select, then:
 
 1. Run one-shot `id` and `ls` with argument `/sdcard`, then open/exit an interactive shell.
 2. List/filter packages; inspect a known package. Explicitly install/uninstall only
