@@ -34,18 +34,34 @@ public static class Program {
     public static async Task Main(string[] args) {
         AnsiConsole.Write(new FigletText("HyperSploit").LeftJustified().Color(Color.Cyan1));
         AnsiConsole.MarkupLine("[green]Welcome to HyperSploit v1.1 by TheAirBlow![/]");
-        var root = Extract();
+        if (args.Contains("--diagnostics")) {
+            EnvironmentDiagnostics.Print();
+            return;
+        }
+        string? adbPath;
+        try {
+            adbPath = AdbExecutable.Resolve();
+        } catch (Exception e) when (e is IOException or UnauthorizedAccessException) {
+            Console.Error.WriteLine($"ADB configuration error: {e.Message}");
+            Environment.ExitCode = 1;
+            return;
+        }
         if (!AdbServer.Instance.GetStatus().IsRunning) {
+            if (adbPath == null) {
+                Console.Error.WriteLine("ADB not found. Install adb and add it to PATH, or set HYPERSPLOIT_ADB_PATH to its executable path.");
+                EnvironmentDiagnostics.Print();
+                Environment.ExitCode = 1;
+                return;
+            }
             AnsiConsole.MarkupLine("[yellow]No ADB server is running, trying to start...[/]");
-            var server = new AdbServer();
-            var path = Path.Combine(root, "adb");
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                path += ".exe";
-            var result = await server.StartServerAsync(path);
-            if (result != StartServerResult.Started) {
-                AnsiConsole.MarkupLine("[red]Failed to start ADB server![/]");
-                AnsiConsole.MarkupLine("[red]Install ADB first you're on Linux or MacOS.[/]");
-                AnsiConsole.MarkupLine("[red]If you're on Windows - make a GitHub issue.[/]");
+            try {
+                var result = await new AdbServer().StartServerAsync(adbPath);
+                if (result != StartServerResult.Started && !AdbServer.Instance.GetStatus().IsRunning)
+                    throw new IOException($"ADB server startup returned {result}.");
+            } catch (Exception e) {
+                Console.Error.WriteLine($"Failed to start ADB at '{adbPath}': {e.Message}");
+                EnvironmentDiagnostics.Print();
+                Environment.ExitCode = 1;
                 return;
             }
         }
@@ -75,7 +91,7 @@ public static class Program {
             if (!AnsiConsole.Confirm("[yellow]Would you like to run HyperSploit on another device?[/]", false)) break;
         }
         
-        if (root != "") Directory.Delete(root);
+
     }
 
     /// <summary>
@@ -270,28 +286,4 @@ public static class Program {
         stream.CopyTo(output); return Encoding.UTF8.GetString(output.ToArray());
     }
 
-    /// <summary>
-    /// Extracts ADB binaries
-    /// </summary>
-    /// <returns>Path to folder</returns>
-    private static string Extract() {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return "";
-        var root = Path.Combine(Path.GetTempPath(), "hypersploit");
-        if (Directory.Exists(root)) return root;
-        AnsiConsole.MarkupLine("[yellow]Extracting Windows ADB binaries...[/]");
-        var assembly = typeof(Program).Assembly; 
-        var files = assembly.GetManifestResourceNames()
-            .Where(x => x.StartsWith("Assets/adb"));
-        foreach (var file in files) {
-            var name = file.Replace("Assets/adb-windows/", "");
-            var path = Path.Combine(root, name);
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            using (var src = assembly.GetManifestResourceStream(file)!)
-            using (var dst = new FileStream(path, FileMode.Create, FileAccess.Write))
-                src.CopyTo(dst);
-            Process.Start("chmod", ["+x", path]);
-        }
-
-        return root;
-    }
 }

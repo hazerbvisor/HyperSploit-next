@@ -61,3 +61,11 @@ This project is licenced under [Mozilla Public License Version 2.0](https://gith
 
 ## Credits
 - [MlgmXyysd](https://github.com/MlgmXyysd) for making [Xiaomi-HyperOS-BootLoader-Bypass](https://github.com/MlgmXyysd/Xiaomi-HyperOS-BootLoader-Bypass) on which this tool is largely based on
+
+## Alpine Linux ARM64 (Phase 1)
+
+ADB is resolved from `HYPERSPLOIT_ADB_PATH` (an executable file path), then `PATH`.
+Linux ARM64 requires a system ADB; bundled Windows binaries are never used there.
+Run with `--diagnostics` to inspect the environment without contacting a device.
+See [the platform audit and exact Alpine commands](docs/alpine-arm64.md).
+Standard iSH uses an i386 guest and cannot run the ARM64 .NET runtime.
