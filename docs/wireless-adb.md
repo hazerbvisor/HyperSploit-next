@@ -1,9 +1,12 @@
-# Phase 2: Wireless ADB
+# Wireless ADB setup (Phase 2 foundation)
 
 ## Pair, connect, select
 
 Android 11+ Wireless Debugging must be supported and enabled by the device.
 Keep the host and device on the same reachable Wi-Fi network.
+
+Open main menu **9** for the wireless setup submenu. The numbered choices below
+refer to that submenu; choose 0 to return to the management menu.
 
 1. In Android developer options, open Wireless debugging, then Pair device with
    pairing code. Keep that screen open.
@@ -18,8 +21,8 @@ Keep the host and device on the same reachable Wi-Fi network.
 Pairing code is sent over ADB stdin rather than included in its process arguments.
 Endpoints accept IPv4 or IPv6 addresses with a valid port; use [IPv6]:port.
 ADB is launched directly with separate arguments, captured stdout/stderr, and a
-20-second deadline. Ctrl+C cancels an in-flight command and exits. No host shell
-is used. The only device command is the fixed read-only `shell getprop`.
+20-second deadline. Ctrl+C cancels an in-flight setup command and returns to the main menu. No host
+shell is used. Phase 3 management commands are documented in [Android tools](android-tools.md).
 
 Selection is saved under the user's local application-data directory
 (`HyperSploit/selected-device.json`). Corrupt or missing selection files are
@@ -60,7 +63,7 @@ uname -m # must report aarch64
 apk add --no-cache git dotnet9-sdk android-tools icu-libs
 git clone https://github.com/hazerbvisor/HyperSploit-next.git
 cd HyperSploit-next
-git checkout phase-2/wireless-adb
+git checkout phase-3/android-tools
 dotnet restore
 dotnet build
 dotnet test
